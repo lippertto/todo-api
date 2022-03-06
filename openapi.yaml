@@ -1,51 +1,46 @@
-openapi: "3.1.0"
+openapi: "3.0.3"
 info:
   description: "This is the Code Intelligence Todo-API"
   version: "1.0.0"
   title: "Todo-API"
   contact:
     email: "tobias.lippert@fastmail.com"
-host: "localhost"
-basePath: "/v1"
+servers:
+  - url: http://localhost:8080/v1
+    description: Development server
 tags:
   - name: "todo"
     description: "Everything about todos"
   - name: "tasks"
     description: "Access to the tasks of a todo"
-schemes:
-  - "https"
-  - "http"
 paths:
   /todos:
     post:
       tags:
         - "todo"
       summary: "Add a new todo"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Pet object that needs to be added to the store"
-          required: true
-          $ref: "#/definitions/Todo"
+      requestBody:
+        description: "Pet object that needs to be added to the store"
+        "content":
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Todo"
       responses:
         "201":
           description: "Successful creation"
-          schema:
-            $ref: "#/definitions/Todo"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Todo"}
         "400":
-          description: "Invalid input"
-          schema: {$ref: "#/definitions/Error"}
+          description: "Bad payload"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Error"}
   /todos/{todoId}:
     get:
       tags:
         - "todo"
       summary: "Get an individual todo by id"
-      consumes: ["application/json"]
-      produces: ["application/json"]
       parameters:
         - name: "todoId"
           in: "path"
@@ -56,17 +51,19 @@ paths:
             format: "int64"
       responses:
         "200":
-          description: "A todo with the given id was found"
+          description: "Found todo"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Todo"}
         "404":
-          description: "No todo with the given id was found"
+          description: "Did not find todo"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Error"}
     put:
       tags:
         - "todo"
       summary: "Update an existing todo"
-      consumes:
-        - "application/json"
-      produces:
-        - "application/json"
       parameters:
         - name: "todoId"
           in: "path"
@@ -75,63 +72,64 @@ paths:
           schema:
             type: "integer"
             format: "int64"
-        - name: "body"
-          in: "body"
-          description: "The Todo to create"
-          required: true
-          $ref: "#/definitions/Todo"
+      requestBody:
+        description: "Pet object that needs to be added to the store"
+        "content":
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/Todo"
       responses:
+        "200":
+          description: "Updated todo"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Todo"}
         "400":
-          description: "Bad payload id provided"
+          description: "Bad payload"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Error"}
         "404":
-          description: "Todo not found"
-  /todos/{todoId}/tasks:
-    post:
-      tags: ["tasks"]
-      summary: "Create a new task"
-      consumes: ["application/json"]
-      produces: ["application/json"]
-    parameters:
-      - in: "body"
-        $ref: "#/definitions/Task"
-    responses:
-      "201":
-        description: "OK"
-        $ref: "#/definitions/Task"
-definitions:
-  Error:
-    type: "object"
-    properties:
-      "error":
-        type: "object"
-        properties:
-          "code":
-            type: "string"
-          "message":
-            type: "string"
-          "details":
-            type: ["string", "null"]
-  Todo:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-      description:
-        type: "string"
-      tasks:
-        type: "array"
-        items:
-          $ref: "#/definitions/Task"
-        default:
-          []
-  Task:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
+          description: "Did not find todo"
+          content:
+            "application/json":
+              schema: {$ref: "#/components/schemas/Error"}
+components:
+  schemas:
+    Error:
+      type: "object"
+      properties:
+        "error":
+          type: "object"
+          properties:
+            "code":
+              type: "string"
+            "message":
+              type: "string"
+            "details":
+              type: "string"
+              nullable: true
+    Todo:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        tasks:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/Task"
+          default:
+            []
+    Task:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"

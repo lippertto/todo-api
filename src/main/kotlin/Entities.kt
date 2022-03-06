@@ -12,3 +12,4 @@ data class ErrorResponse(val error: ErrorObject)
 
 @Serializable
 data class ErrorObject(val code: String, val message: String, val details: String? = null)
+

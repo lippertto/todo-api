@@ -17,33 +17,44 @@ import java.util.concurrent.TimeUnit
 
 
 private fun get(path: String): String {
-    val client = HttpClient.newBuilder().build();
+    val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
         .uri(URI.create("http://localhost:8080/${path}"))
-        .build();
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        .GET()
+        .build()
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+    return response.body()!!
+}
+
+private fun delete(path: String): String {
+    val client = HttpClient.newBuilder().build()
+    val request = HttpRequest.newBuilder()
+        .uri(URI.create("http://localhost:8080/${path}"))
+        .DELETE()
+        .build()
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
     return response.body()!!
 }
 
 private fun post(json: String, path: String): String {
-    val client = HttpClient.newBuilder().build();
+    val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
         .uri(URI.create("http://localhost:8080/${path}"))
         .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         .POST(HttpRequest.BodyPublishers.ofString(json))
-        .build();
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        .build()
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
     return response.body()!!
 }
 
 private fun put(json: String, path: String): String {
-    val client = HttpClient.newBuilder().build();
+    val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
         .uri(URI.create("http://localhost:8080/${path}"))
         .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         .PUT(HttpRequest.BodyPublishers.ofString(json))
-        .build();
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        .build()
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
     return response.body()!!
 }
 
@@ -144,5 +155,68 @@ class IntegrationTest : StringSpec({
         val getResponse = get("/todos/${parsedCreationResponse.id}")
         val parsedGetResponse = Json.decodeFromString<Todo>(getResponse)
         parsedGetResponse.description shouldBe "new-description"
+    }
+
+    "deleted todo is deleted" {
+        // GIVEN
+        val todo = Todo("any-id", "test", "test todo")
+        val todoRequest = Json.encodeToString(todo)
+        val createResponse = Json.decodeFromString<Todo>(post(todoRequest, "/todos"))
+
+        // WHEN
+        delete(            "/todos/${createResponse.id}"        )
+
+        val getResponse = Json.decodeFromString<ErrorResponse>(get("/todos/${createResponse.id}"))
+
+        // THEN
+        getResponse.error.code shouldBe "NotFound"
+    }
+
+    "Can add task" {
+        // GIVEN
+        val createResponse = post(Json.encodeToString(Todo("any-id", "test", "test todo")), "/todos")
+        val todoId = Json.decodeFromString<Todo>(createResponse).id
+
+        // WHEN
+        val createdTask = Json.decodeFromString<Task>(
+            post(
+                Json.encodeToString(
+                    Task(
+                        id = "any-id",
+                        name = "any-name"
+                    )
+                ), "/todos/$todoId/tasks"
+            )
+        )
+
+        // THEN
+        createdTask.name shouldBe "any-name"
+    }
+
+    "Can update task" {
+        // GIVEN
+        val todo = Todo("any-id", "test", "test todo")
+        val todoId = Json.decodeFromString<Todo>(post(Json.encodeToString(todo), "/todos")).id
+
+        val taskId =
+            Json.decodeFromString<Task>(
+                post(Json.encodeToString(Task(id = "any-id", name = "any-name")), "/todos/$todoId/tasks")
+            ).id
+
+        // WHEN
+        val updatedTask =
+            Json.decodeFromString<Task>(
+                put(Json.encodeToString(Task(id = "any-id", name = "new-name")), "/todos/$todoId/tasks/$taskId")
+            )
+
+        // THEN
+        updatedTask.name shouldBe "new-name"
+
+        // AND THEN
+        Json.decodeFromString<Task>(
+            get("/todos/$todoId/tasks/$taskId")
+        ).name shouldBe "new-name"
+
+
     }
 })

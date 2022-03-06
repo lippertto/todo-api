@@ -38,4 +38,35 @@ class MainKtTest : StringSpec({
                 }
         }
     }
+
+    "Can update task" {
+        withTestApplication(Application::module) {
+            // GIVEN
+            val createCall = handleRequest(HttpMethod.Post, "/todos") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(Json.encodeToString(Todo("", "name", "description")))
+            }
+            val createdTodo = Json.decodeFromString<Todo>(createCall.response.content!!)
+            val addCall = handleRequest(HttpMethod.Post, "/todos/${createdTodo.id}/tasks") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(Json.encodeToString(Task("", "task-name")))
+            }
+            val createdTask = Json.decodeFromString<Task>(addCall.response.content!!)
+
+            // WHEN
+            handleRequest(HttpMethod.Put, "/todos/${createdTodo.id}/tasks/${createdTask.id}") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                setBody(Json.encodeToString(Task("", "updated-task-name")))
+            }
+
+            // THEN
+            val getCall = handleRequest(HttpMethod.Get, "/todos/${createdTodo.id}/tasks/${createdTask.id}") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            }
+
+            val fetchedTask = Json.decodeFromString<Task>(getCall.response.content!!)
+            fetchedTask.id shouldBe createdTask.id
+            fetchedTask.name shouldBe "updated-task-name"
+        }
+    }
 })

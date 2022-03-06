@@ -16,10 +16,10 @@ val todoRepo = TodoRepository()
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private suspend fun returnNotFound (call: ApplicationCall) {
+private suspend fun returnNotFound (call: ApplicationCall, entity: String) {
     call.respondText(
         Json.encodeToString(
-            ErrorResponse(ErrorObject("NotFound", "Could not find entity with given id"))
+            ErrorResponse(ErrorObject("NotFound", "Could not find entity $entity with given id"))
         ), ContentType.Application.Json, HttpStatusCode.NotFound
     )
 }
@@ -32,6 +32,7 @@ private suspend fun returnBadRequest(call: ApplicationCall) {
     )
 }
 
+
 fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         json()
@@ -42,29 +43,92 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
-        get("/todos/{todoId}") {
-            val todoId = call.parameters["todoId"] as String
-            val todo = todoRepo.find(todoId) ?: return@get returnNotFound(call)
+        createTodoRoute()
+        todoByIdRoute()
+        updateTodoRoute()
+        deleteTodoRoute()
 
-            call.respondText(Json.encodeToString(todo), ContentType.Application.Json, HttpStatusCode.OK)
+        createTaskRoute()
+        taskByIdRoute()
+        updateTaskRoute()
+    }
+}
+
+private fun Route.todoByIdRoute() {
+    get("/todos/{todoId}") {
+        val todoId = call.parameters["todoId"] as String
+        val todo = todoRepo.find(todoId) ?: return@get returnNotFound(call, "Todo")
+
+        call.respondText(Json.encodeToString(todo), ContentType.Application.Json, HttpStatusCode.OK)
+    }
+}
+
+private fun Route.updateTodoRoute() {
+    put("/todos/{todoId}") {
+        val todoId = call.parameters["todoId"] as String
+        todoRepo.find(todoId) ?: return@put returnNotFound(call, "Todo")
+
+        val todo = call.receive<Todo>()
+
+        val updatedTodo = todoRepo.updateTodo(todoId, todo)
+        call.respondText(Json.encodeToString(updatedTodo), ContentType.Application.Json, HttpStatusCode.OK)
+    }
+}
+
+private fun Route.createTodoRoute() {
+    post("/todos") {
+        val todo = call.receive<Todo>()
+
+        val newTodo = todoRepo.save(todo)
+
+        call.respondText(Json.encodeToString(newTodo), ContentType.Application.Json, HttpStatusCode.Created)
+    }
+}
+
+private fun Route.deleteTodoRoute() {
+    delete("/todos/{todoId}") {
+        val todoId = call.parameters["todoId"] as String
+        if (!todoRepo.delete(todoId)) {
+            returnNotFound(call, "Todo")
+        } else {
+            call.respondText("", ContentType.Application.Json, HttpStatusCode.OK)
         }
+    }
+}
 
-        put("/todos/{todoId}") {
-            val todoId = call.parameters["todoId"] as String
-            todoRepo.find(todoId) ?: return@put returnNotFound(call)
+private fun Route.createTaskRoute() {
+    post("/todos/{todoId}/tasks") {
+        val task = call.receive<Task>()
+        val todoId = call.parameters["todoId"] as String
+        todoRepo.find(todoId) ?: return@post returnNotFound(call, "Todo")
 
-            val todo = call.receive<Todo>()
+        val newTask = todoRepo.addTask(todoId, task) ?: return@post returnNotFound(call, "Task")
 
-            val updatedTodo = todoRepo.update(todoId, todo)
-            call.respondText(Json.encodeToString(updatedTodo), ContentType.Application.Json, HttpStatusCode.OK)
-        }
+        call.respondText(Json.encodeToString(newTask), ContentType.Application.Json, HttpStatusCode.Created)
+    }
+}
 
-        post("/todos") {
-            val todo = call.receive<Todo>()
+private fun Route.updateTaskRoute() {
+    put("/todos/{todoId}/tasks/{taskId}") {
+        val todoId = call.parameters["todoId"] as String
+        todoRepo.find(todoId) ?: return@put returnNotFound(call, "Todo")
 
-            val newTodo = todoRepo.put(todo)
+        val taskId = call.parameters["taskId"] as String
+        val task = call.receive<Task>()
 
-            call.respondText(Json.encodeToString(newTodo), ContentType.Application.Json, HttpStatusCode.OK)
-        }
+        val newTask = todoRepo.updateTask(todoId, taskId, task) ?: return@put returnNotFound(call, "Task")
+        call.respondText(Json.encodeToString(newTask), ContentType.Application.Json, HttpStatusCode.OK)
+    }
+}
+
+private fun Route.taskByIdRoute() {
+    get("/todos/{todoId}/tasks/{taskId}") {
+        val todoId = call.parameters["todoId"] as String
+        val todo = todoRepo.find(todoId) ?: return@get returnNotFound(call, "Todo")
+
+        val taskId = call.parameters["taskId"] as String
+        val task = todo.tasks.find {it.id == taskId} ?: return@get returnNotFound(call, "Task")
+
+        call.respondText(Json.encodeToString(task), ContentType.Application.Json, HttpStatusCode.OK)
     }
 }

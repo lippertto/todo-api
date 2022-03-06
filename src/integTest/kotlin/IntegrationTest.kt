@@ -93,20 +93,22 @@ class IntegrationTest : StringSpec({
 
     "Can create a new todo" {
         // GIVEN
-        val response = post(
-            "/todos",
-            Json.encodeToString(
-                Todo("any-id", "test", "test todo")
-            )
+        val todo = Json.encodeToString(
+            Todo("any-id", "test", "test todo")
         )
 
         // WHEN
-        val parsedResponse = Json.decodeFromString<Todo>(response)
+        val createdTodo = Json.decodeFromString<Todo>(
+            post(
+                "/todos",
+                todo
+            )
+        )
 
         // THEN
-        parsedResponse.name shouldBe "test"
-        parsedResponse.description shouldBe "test todo"
-        parsedResponse.tasks shouldHaveSize 0
+        createdTodo.name shouldBe "test"
+        createdTodo.description shouldBe "test todo"
+        createdTodo.tasks shouldHaveSize 0
     }
 
     "Receives new id on create" {
@@ -124,16 +126,20 @@ class IntegrationTest : StringSpec({
 
     "Retrieves created todo" {
         // GIVEN
-        val todo = Json.encodeToString(Todo("any-id", "test", "test todo"))
-        val createdTodo = Json.decodeFromString<Todo>(post("/todos", todo))
+        val createdTodo = Json.decodeFromString<Todo>(
+            post(
+                "/todos",
+                Json.encodeToString(Todo("any-id", "test", "test todo"))
+            )
+        )
 
         // WHEN
-        val parsedGetResponse = Json.decodeFromString<Todo>(
+        val retrievedTodo = Json.decodeFromString<Todo>(
             get("/todos/${createdTodo.id}")
         )
 
         // THEN
-        createdTodo shouldBe parsedGetResponse
+        createdTodo shouldBe retrievedTodo
     }
 
     "Can update todo" {
@@ -233,18 +239,28 @@ class IntegrationTest : StringSpec({
 
     "Can update task" {
         // GIVEN
-        val todo = Todo("any-id", "test", "test todo")
-        val todoId = Json.decodeFromString<Todo>(post("/todos", Json.encodeToString(todo))).id
+        val todoId = Json.decodeFromString<Todo>(
+            post(
+                "/todos",
+                Json.encodeToString(Todo("any-id", "test", "test todo"))
+            )
+        ).id
 
         val taskId =
             Json.decodeFromString<Task>(
-                post("/todos/$todoId/tasks", Json.encodeToString(Task(id = "any-id", name = "any-name")))
+                post(
+                    "/todos/$todoId/tasks",
+                    Json.encodeToString(Task(id = "any-id", name = "any-name"))
+                )
             ).id
 
         // WHEN
         val updatedTask =
             Json.decodeFromString<Task>(
-                put("/todos/$todoId/tasks/$taskId", Json.encodeToString(Task(id = "any-id", name = "new-name")))
+                put(
+                    "/todos/$todoId/tasks/$taskId",
+                    Json.encodeToString(Task(id = "any-id", name = "new-name"))
+                )
             )
 
         // THEN

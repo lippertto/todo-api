@@ -35,12 +35,9 @@ dependencies {
     implementation("io.ktor:ktor-serialization")
     implementation("ch.qos.logback:logback-classic:1.2.10")
 
-    testImplementation(platform("org.junit:junit-bom:5.8.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.ktor:ktor-server-test-host")
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
 tasks.withType<Test>().configureEach {

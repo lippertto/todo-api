@@ -15,11 +15,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.concurrent.TimeUnit
 
-
 private fun get(path: String): String {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:8080/${path}"))
+        .uri(URI.create("http://localhost:8080/$path"))
         .GET()
         .build()
     val response = client.send(request, HttpResponse.BodyHandlers.ofString())
@@ -29,7 +28,7 @@ private fun get(path: String): String {
 private fun delete(path: String): String {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:8080/${path}"))
+        .uri(URI.create("http://localhost:8080/$path"))
         .DELETE()
         .build()
     val response = client.send(request, HttpResponse.BodyHandlers.ofString())
@@ -39,7 +38,7 @@ private fun delete(path: String): String {
 private fun post(path: String, json: String): String {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:8080/${path}"))
+        .uri(URI.create("http://localhost:8080/$path"))
         .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         .POST(HttpRequest.BodyPublishers.ofString(json))
         .build()
@@ -50,7 +49,7 @@ private fun post(path: String, json: String): String {
 private fun put(path: String, json: String): String {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create("http://localhost:8080/${path}"))
+        .uri(URI.create("http://localhost:8080/$path"))
         .header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
         .PUT(HttpRequest.BodyPublishers.ofString(json))
         .build()
@@ -61,12 +60,11 @@ private fun put(path: String, json: String): String {
 private fun runGradleApp(): Process = runGradle("run")
 private fun runGradle(vararg args: String): Process {
     val gradlewPath =
-        "/home/lippertto/Code/todo-api/gradlew"//System.getProperty("gradlew") ?: error("System property 'gradlew' should point to Gradle Wrapper file")
+        "/home/lippertto/Code/todo-api/gradlew" // System.getProperty("gradlew") ?: error("System property 'gradlew' should point to Gradle Wrapper file")
     val processArgs = listOf(gradlewPath, "-Dorg.gradle.logging.level=quiet", "--quiet") + args
 
     return ProcessBuilder(processArgs).start()
 }
-
 
 private lateinit var serverProcess: Process
 
@@ -96,7 +94,8 @@ class IntegrationTest : StringSpec({
     "Can create a new todo" {
         // GIVEN
         val response = post(
-            "/todos", Json.encodeToString(
+            "/todos",
+            Json.encodeToString(
                 Todo("any-id", "test", "test todo")
             )
         )
@@ -269,7 +268,6 @@ class IntegrationTest : StringSpec({
 
         // WHEN
         delete("/todos/$todoId/tasks/$taskId")
-
 
         // THEN
         Json.decodeFromString<ErrorResponse>(

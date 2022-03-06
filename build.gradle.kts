@@ -5,6 +5,16 @@ plugins {
     id("nebula.integtest") version "9.6.3"
 }
 
+buildscript {
+    repositories {
+        maven("https://plugins.gradle.org/m2/")
+    }
+    dependencies {
+        classpath("org.jlleitschuh.gradle:ktlint-gradle:10.2.1")
+    }
+}
+
+apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

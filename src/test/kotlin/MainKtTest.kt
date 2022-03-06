@@ -5,8 +5,8 @@ import io.kotest.matchers.shouldBe
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class MainKtTest : StringSpec({

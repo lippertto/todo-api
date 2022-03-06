@@ -7,20 +7,21 @@ import io.ktor.request.*
 import io.ktor.request.ContentTransformationException
 import io.ktor.response.*
 import io.ktor.routing.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import io.ktor.serialization.json
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val todoRepo = TodoRepository()
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-private suspend fun returnNotFound (call: ApplicationCall, entity: String) {
+private suspend fun returnNotFound(call: ApplicationCall, entity: String) {
     call.respondText(
         Json.encodeToString(
             ErrorResponse(ErrorObject("NotFound", "Could not find entity $entity with given id"))
-        ), ContentType.Application.Json, HttpStatusCode.NotFound
+        ),
+        ContentType.Application.Json, HttpStatusCode.NotFound
     )
 }
 
@@ -28,18 +29,18 @@ private suspend fun returnBadRequest(call: ApplicationCall) {
     call.respondText(
         Json.encodeToString(
             ErrorResponse(ErrorObject("BadRequest", "Bad payload provided"))
-        ), ContentType.Application.Json, HttpStatusCode.BadRequest
+        ),
+        ContentType.Application.Json, HttpStatusCode.BadRequest
     )
 }
-
 
 fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         json()
     }
     install(StatusPages) {
-        exception<SerializationException> {returnBadRequest(call) }
-        exception<ContentTransformationException> {returnBadRequest(call) }
+        exception<SerializationException> { returnBadRequest(call) }
+        exception<ContentTransformationException> { returnBadRequest(call) }
     }
 
     routing {
@@ -128,7 +129,7 @@ private fun Route.taskByIdRoute() {
         val todo = todoRepo.find(todoId) ?: return@get returnNotFound(call, "Todo")
 
         val taskId = call.parameters["taskId"] as String
-        val task = todo.tasks.find {it.id == taskId} ?: return@get returnNotFound(call, "Task")
+        val task = todo.tasks.find { it.id == taskId } ?: return@get returnNotFound(call, "Task")
 
         call.respondText(Json.encodeToString(task), ContentType.Application.Json, HttpStatusCode.OK)
     }
@@ -137,7 +138,7 @@ private fun Route.taskByIdRoute() {
 private fun Route.deleteTaskRoute() {
     delete("/todos/{todoId}/tasks/{taskId}") {
         val todoId = call.parameters["todoId"] as String
-        val todo = todoRepo.find(todoId) ?: return@delete returnNotFound(call, "Todo")
+        todoRepo.find(todoId) ?: return@delete returnNotFound(call, "Todo")
 
         val taskId = call.parameters["taskId"] as String
         todoRepo.deleteTask(todoId, taskId)

@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-class EntitiesKtTest: StringSpec({
+class EntitiesKtTest : StringSpec({
     "Can decode json" {
         val json = """{"id":"any-id","name":"any-name","description":"any-description"}"""
         val decoded = Json.decodeFromString<Todo>(json)

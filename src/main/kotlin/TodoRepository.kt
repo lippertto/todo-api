@@ -17,7 +17,7 @@ class TodoRepository(private val data: MutableMap<String, Todo> = mutableMapOf()
 
     fun updateTodo(id: String, todo: Todo): Todo? {
         if (find(id) == null) {
-            return null;
+            return null
         }
         val newTodo = todo.copy(id = id)
         data[id] = newTodo
@@ -36,7 +36,8 @@ class TodoRepository(private val data: MutableMap<String, Todo> = mutableMapOf()
         data[todoId] = todo.copy(
             tasks = todo.tasks.toMutableList().also {
                 it[index] = newTask
-            })
+            }
+        )
         return newTask
     }
 
@@ -60,9 +61,9 @@ class TodoRepository(private val data: MutableMap<String, Todo> = mutableMapOf()
     fun deleteTask(todoId: String, taskId: String): Boolean {
         val todo = find(todoId) ?: return false
 
-        val task = todo.tasks.find {it.id == taskId} ?: return false
+        val task = todo.tasks.find { it.id == taskId } ?: return false
 
-        data[todoId] = todo.copy(tasks = todo.tasks.filter {it != task})
+        data[todoId] = todo.copy(tasks = todo.tasks.filter { it != task })
 
         return true
     }

@@ -1,0 +1,7 @@
+[*.{kt,kts}]
+indent_size=4
+insert_final_newline=true
+max_line_length=100
+
+# disabled_rules is ktlint-specific.
+disabled_rules=no-wildcard-imports,max-line-length

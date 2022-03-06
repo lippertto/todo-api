@@ -51,6 +51,7 @@ fun Application.module(testing: Boolean = false) {
         createTaskRoute()
         taskByIdRoute()
         updateTaskRoute()
+        deleteTaskRoute()
     }
 }
 
@@ -88,7 +89,7 @@ private fun Route.createTodoRoute() {
 private fun Route.deleteTodoRoute() {
     delete("/todos/{todoId}") {
         val todoId = call.parameters["todoId"] as String
-        if (!todoRepo.delete(todoId)) {
+        if (!todoRepo.deleteTodo(todoId)) {
             returnNotFound(call, "Todo")
         } else {
             call.respondText("", ContentType.Application.Json, HttpStatusCode.OK)
@@ -130,5 +131,16 @@ private fun Route.taskByIdRoute() {
         val task = todo.tasks.find {it.id == taskId} ?: return@get returnNotFound(call, "Task")
 
         call.respondText(Json.encodeToString(task), ContentType.Application.Json, HttpStatusCode.OK)
+    }
+}
+
+private fun Route.deleteTaskRoute() {
+    delete("/todos/{todoId}/tasks/{taskId}") {
+        val todoId = call.parameters["todoId"] as String
+        val todo = todoRepo.find(todoId) ?: return@delete returnNotFound(call, "Todo")
+
+        val taskId = call.parameters["taskId"] as String
+        todoRepo.deleteTask(todoId, taskId)
+        call.respondText("", ContentType.Application.Json, HttpStatusCode.OK)
     }
 }

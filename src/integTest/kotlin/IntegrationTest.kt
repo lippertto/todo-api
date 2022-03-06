@@ -256,4 +256,24 @@ class IntegrationTest : StringSpec({
             get("/todos/$todoId/tasks/$taskId")
         ).name shouldBe "new-name"
     }
+
+    "Can delete task" {
+        // GIVEN
+        val todo = Todo("any-id", "test", "test todo")
+        val todoId = Json.decodeFromString<Todo>(post("/todos", Json.encodeToString(todo))).id
+
+        val taskId =
+            Json.decodeFromString<Task>(
+                post("/todos/$todoId/tasks", Json.encodeToString(Task(id = "any-id", name = "any-name")))
+            ).id
+
+        // WHEN
+        delete("/todos/$todoId/tasks/$taskId")
+
+
+        // THEN
+        Json.decodeFromString<ErrorResponse>(
+            get("/todos/$todoId/tasks/$taskId")
+        ).error.code shouldBe "NotFound"
+    }
 })

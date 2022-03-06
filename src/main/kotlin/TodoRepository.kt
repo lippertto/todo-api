@@ -49,11 +49,21 @@ class TodoRepository(private val data: MutableMap<String, Todo> = mutableMapOf()
         return newTask
     }
 
-    fun delete(id: String): Boolean {
+    fun deleteTodo(id: String): Boolean {
         if (find(id) == null) {
             return false
         }
         data.remove(id)
+        return true
+    }
+
+    fun deleteTask(todoId: String, taskId: String): Boolean {
+        val todo = find(todoId) ?: return false
+
+        val task = todo.tasks.find {it.id == taskId} ?: return false
+
+        data[todoId] = todo.copy(tasks = todo.tasks.filter {it != task})
+
         return true
     }
 }

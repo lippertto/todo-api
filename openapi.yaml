@@ -109,11 +109,9 @@ paths:
 components:
   schemas:
     TodoId:
-      type: "integer"
-      format: int64
+      type: "string"
     TaskId:
-      type: "integer"
-      format: int64
+      type: "string"
     Error:
       type: "object"
       properties:
@@ -131,8 +129,8 @@ components:
       type: "object"
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: "string"
+          readOnly: true
         name:
           type: "string"
         description:
@@ -148,8 +146,8 @@ components:
       type: "object"
       properties:
         id:
-          type: "integer"
-          format: "int64"
+          type: "string"
+          readOnly: true
         name:
           type: "string"
   responses:
